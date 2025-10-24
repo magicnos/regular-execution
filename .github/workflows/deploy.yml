@@ -3,7 +3,7 @@ name: Deploy to Cloud Functions
 on:
   push:
     branches:
-      - main
+      - main  # mainブランチにpushされたら実行
 
 jobs:
   deploy:
@@ -13,13 +13,19 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      # 認証ステップ
+      - name: Authenticate to Google Cloud
+        uses: google-github-actions/auth@v2
+        with:
+          credentials_json: ${{ secrets.GCP_SA_KEY }}
+
+      # gcloud CLIをセットアップ
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
-          service_account_key: ${{ secrets.GCP_SA_KEY }}
-          export_default_credentials: true
 
+      # デプロイ実行
       - name: Deploy to Cloud Functions
         run: |
           gcloud functions deploy helloWorld \
