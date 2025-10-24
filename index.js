@@ -1,15 +1,9 @@
-// tasks/createTask.js から Firestoreトリガー関数を読み込む
-const { onUpdateHandler } = require("./tasks/createTask");
-
-// tasks/pushHandler.js から HTTP関数を読み込む
+// Push関数を読み込む
 const { pushHandler } = require("./tasks/pushHandler");
 
-// Firestore更新トリガー関数
-exports.onUpdateFirestore = onUpdateHandler;
-
-// HTTP関数（Push エンドポイント）
+// HTTPトリガー関数としてエクスポート
 exports.sendMessage = (req, res) => {
-  pushHandler(req.body)
+  pushHandler(req.body)                  // pushHandler は Promise を返す想定
     .then(result => res.status(200).send(result))
     .catch(err => res.status(500).send(err.message));
 };
