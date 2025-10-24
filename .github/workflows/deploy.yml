@@ -3,7 +3,7 @@ name: Deploy to Cloud Functions
 on:
   push:
     branches:
-      - main  # mainブランチにpushされたら実行
+      - main  # mainブランチにpushされたら実行する
 
 jobs:
   deploy:
