@@ -1,0 +1,6 @@
+{
+  "functions": {
+    "source": "my-functions",
+    "runtime": "nodejs18"
+  }
+}
