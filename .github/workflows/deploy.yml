@@ -30,10 +30,12 @@ jobs:
       - name: Deploy to Cloud Functions
         run: |
           gcloud functions deploy onUserSettingsUpdate \
+            --gen2 \
             --region=asia-northeast1 \
             --runtime=nodejs20 \
             --source=./functions \
             --entry-point=onUserSettingsUpdate \
-            --trigger-event google.firestore.document.update \
-            --trigger-resource "projects/linebot-799ed/databases/(default)/documents/users/{userId}/noticeSetting" \
-            --timeout=60s
+            --trigger-event-filters="type=google.cloud.firestore.document.v1.updated" \
+            --trigger-event-filters="database=(default)" \
+            --trigger-event-filters-path-pattern="document=users/{userId}/noticeSetting" \
+            --timeout=120s

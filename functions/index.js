@@ -1,6 +1,7 @@
 import { onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as admin from "firebase-admin";
 import { CloudTasksClient } from "@google-cloud/tasks";
+import express from "express";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -13,6 +14,7 @@ const SERVICE_ACCOUNT_EMAIL = process.env.SERVICE_ACCOUNT_EMAIL;
 
 const client = new CloudTasksClient();
 
+// --- Firestore 更新トリガー ---
 export const onUserSettingsUpdate = onDocumentUpdated(
   "users/{userId}/noticeSetting",
   async (event) => {
@@ -20,18 +22,14 @@ export const onUserSettingsUpdate = onDocumentUpdated(
     const after = event.data?.after?.data();
     const before = event.data?.before?.data();
 
-    // ドキュメント削除時
     if (!after) {
-      if (before?.notification?.taskName) {
-        await deleteTaskIfExists(before.notification.taskName);
-      }
+      if (before?.notification?.taskName) await deleteTaskIfExists(before.notification.taskName);
       return;
     }
 
     const newNotif = after.notification;
     const oldNotif = before?.notification;
 
-    // 時間設定が削除された場合
     if (!newNotif?.time) {
       if (oldNotif?.taskName) {
         await deleteTaskIfExists(oldNotif.taskName);
@@ -42,23 +40,13 @@ export const onUserSettingsUpdate = onDocumentUpdated(
       return;
     }
 
-    // timeが変わっていない場合
-    if (
-      oldNotif &&
-      oldNotif.time === newNotif.time &&
-      oldNotif.timezone === newNotif.timezone &&
-      oldNotif.taskName
-    ) {
+    if (oldNotif && oldNotif.time === newNotif.time && oldNotif.timezone === newNotif.timezone && oldNotif.taskName) {
       console.log("time not changed - skip scheduling");
       return;
     }
 
-    // 旧タスク削除
-    if (oldNotif?.taskName) {
-      await deleteTaskIfExists(oldNotif.taskName);
-    }
+    if (oldNotif?.taskName) await deleteTaskIfExists(oldNotif.taskName);
 
-    // 次回通知時刻を計算
     let targetIso;
     if (newNotif.nextOccurrenceIso) {
       targetIso = newNotif.nextOccurrenceIso;
@@ -71,7 +59,6 @@ export const onUserSettingsUpdate = onDocumentUpdated(
       targetIso = target.toISOString();
     }
 
-    // Cloud Tasks タスク作成
     const parent = client.queuePath(PROJECT_ID, LOCATION, QUEUE_NAME);
     const payload = { userId };
 
@@ -103,3 +90,9 @@ async function deleteTaskIfExists(taskName) {
     console.log("Delete task failed:", e.message);
   }
 }
+
+// --- Healthcheck 用 Express サーバー ---
+const app = express();
+app.get("/", (req, res) => res.send("OK"));
+const PORT = process.env.PORT || 8080;
+app.listen(PORT, () => console.log(`Server listening on port ${PORT}`));
