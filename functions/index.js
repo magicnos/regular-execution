@@ -13,7 +13,7 @@ const SERVICE_ACCOUNT_EMAIL = process.env.SERVICE_ACCOUNT_EMAIL;
 
 const client = new CloudTasksClient();
 
-exports.onUserSettingsUpdate = onDocumentWritten(
+exports.onUserSettingsUpdate = onDocumentUpdated(
   "users/{userId}/noticeSetting",
   async (event) => {
     const userId = event.params.userId;
