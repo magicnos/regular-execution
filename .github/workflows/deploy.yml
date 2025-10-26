@@ -34,6 +34,4 @@ jobs:
             --region=asia-northeast1 \
             --source=. \
             --entry-point=onUserSettingsUpdate \
-            --trigger-event-filters="type=google.cloud.firestore.document.v1.written" \
-            --trigger-event-filters="database=(default)" \
-            --trigger-event-filters-path-pattern="document=users/{userId}/noticeSetting"
+            --trigger-location=asia-northeast1
