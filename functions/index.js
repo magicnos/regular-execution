@@ -20,38 +20,8 @@ exports.onUserSettingsUpdate = functions.firestore
     const before = change.before.data();
     const after = change.after.data();
 
-    // ドキュメント削除時は無視（onUpdateなので通常不要）
-    if (!after) {
-      if (before?.notification?.taskName) {
-        await deleteTaskIfExists(before.notification.taskName);
-      }
-      return;
-    }
-
     const newNotif = after.notification;
     const oldNotif = before?.notification;
-
-    // 時間設定が削除された場合
-    if (!newNotif?.time) {
-      if (oldNotif?.taskName) {
-        await deleteTaskIfExists(oldNotif.taskName);
-        await db.doc(`users/${userId}/noticeSetting`).update({
-          "notification.taskName": admin.firestore.FieldValue.delete(),
-        });
-      }
-      return;
-    }
-
-    // timeが変わっていない場合
-    if (
-      oldNotif &&
-      oldNotif.time === newNotif.time &&
-      oldNotif.timezone === newNotif.timezone &&
-      oldNotif.taskName
-    ) {
-      console.log("time not changed - skip scheduling");
-      return;
-    }
 
     // 旧タスク削除
     if (oldNotif?.taskName) {
