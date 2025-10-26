@@ -14,7 +14,7 @@ const SERVICE_ACCOUNT_EMAIL = process.env.SERVICE_ACCOUNT_EMAIL;
 const client = new CloudTasksClient();
 
 export const onUserSettingsUpdate = onDocumentWritten(
-  "users/{userId}",
+  "users/{userId}/noticeSetting",
   async (event) => {
     const userId = event.params.userId;
     const after = event.data?.after?.data();
@@ -33,7 +33,7 @@ export const onUserSettingsUpdate = onDocumentWritten(
     if (!newNotif?.time) {
       if (oldNotif?.taskName) {
         await deleteTaskIfExists(oldNotif.taskName);
-        await db.doc(`users/${userId}/setting[time]`).update({
+        await db.doc(`users/${userId}/noticeSetting`).update({
           "notification.taskName": admin.firestore.FieldValue.delete(),
         });
       }
