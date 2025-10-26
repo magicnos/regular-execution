@@ -38,5 +38,5 @@ jobs:
             --source=./functions \
             --entry-point=onUserSettingsUpdate \
             --trigger-event-filters="type=google.cloud.firestore.document.v1.updated" \
-            --trigger-event-filters-path-pattern="users/{userId}/noticeSetting" \
+            --trigger-event-filters-path-pattern="document=users/{userId}/noticeSetting"
             --timeout=60s \
