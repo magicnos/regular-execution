@@ -1,6 +1,6 @@
-import { onDocumentWritten } from "firebase-functions/v2/firestore";
-import * as admin from "firebase-admin";
-import { CloudTasksClient } from "@google-cloud/tasks";
+const { onDocumentWritten } = require("firebase-functions/v2/firestore");
+const admin = require("firebase-admin");
+const { CloudTasksClient } = require("@google-cloud/tasks");
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -13,13 +13,14 @@ const SERVICE_ACCOUNT_EMAIL = process.env.SERVICE_ACCOUNT_EMAIL;
 
 const client = new CloudTasksClient();
 
-export const onUserSettingsUpdate = onDocumentWritten(
+exports.onUserSettingsUpdate = onDocumentWritten(
   "users/{userId}/noticeSetting",
   async (event) => {
     const userId = event.params.userId;
     const after = event.data?.after?.data();
     const before = event.data?.before?.data();
 
+    // ドキュメント削除時
     if (!after) {
       if (before?.notification?.taskName) {
         await deleteTaskIfExists(before.notification.taskName);
@@ -30,6 +31,7 @@ export const onUserSettingsUpdate = onDocumentWritten(
     const newNotif = after.notification;
     const oldNotif = before?.notification;
 
+    // 時間設定が削除された場合
     if (!newNotif?.time) {
       if (oldNotif?.taskName) {
         await deleteTaskIfExists(oldNotif.taskName);
@@ -40,6 +42,7 @@ export const onUserSettingsUpdate = onDocumentWritten(
       return;
     }
 
+    // timeが変わっていない場合
     if (
       oldNotif &&
       oldNotif.time === newNotif.time &&
@@ -50,10 +53,12 @@ export const onUserSettingsUpdate = onDocumentWritten(
       return;
     }
 
+    // 旧タスク削除
     if (oldNotif?.taskName) {
       await deleteTaskIfExists(oldNotif.taskName);
     }
 
+    // 次回通知時刻を計算
     let targetIso;
     if (newNotif.nextOccurrenceIso) {
       targetIso = newNotif.nextOccurrenceIso;
@@ -66,6 +71,7 @@ export const onUserSettingsUpdate = onDocumentWritten(
       targetIso = target.toISOString();
     }
 
+    // Cloud Tasks タスク作成
     const parent = client.queuePath(PROJECT_ID, LOCATION, QUEUE_NAME);
     const payload = { userId };
 
@@ -76,16 +82,14 @@ export const onUserSettingsUpdate = onDocumentWritten(
         url: ENDPOINT_URL,
         headers: { "Content-Type": "application/json" },
         body: Buffer.from(JSON.stringify(payload)).toString("base64"),
-        oidcToken: {
-          serviceAccountEmail: SERVICE_ACCOUNT_EMAIL,
-        },
+        oidcToken: { serviceAccountEmail: SERVICE_ACCOUNT_EMAIL },
       },
     };
 
     const [response] = await client.createTask({ parent, task });
     console.log("Created task:", response.name);
 
-    await db.doc(`users/${userId}`).update({
+    await db.doc(`users/${userId}/noticeSetting`).update({
       "notification.taskName": response.name,
     });
   }
@@ -96,6 +100,6 @@ async function deleteTaskIfExists(taskName) {
     await client.deleteTask({ name: taskName });
     console.log("Deleted task:", taskName);
   } catch (e) {
-    console.log("Delete task failed (maybe already executed):", e.message);
+    console.log("Delete task failed:", e.message);
   }
 }

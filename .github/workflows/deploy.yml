@@ -3,35 +3,39 @@ name: Deploy to Cloud Functions
 on:
   push:
     branches:
-      - main  # mainブランチにpushされたら実行する
+      - main  # mainブランチにpushされたときにデプロイする
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-latest  # Ubuntuで実行
 
     steps:
+      # GitHubリポジトリからコードを取得
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # 認証ステップ
+      # GCP サービスアカウントで認証
+      # secrets.GCP_SA_KEY にサービスアカウントのJSONキーを保存しておく
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # gcloud CLIをセットアップ
+      # gcloud CLIのセットアップ
+      # secrets.GCP_PROJECT_ID にGCPのプロジェクトIDを入れておく
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      # デプロイ実行
+      # Cloud Functions Gen2 にデプロイ
       - name: Deploy to Cloud Functions
         run: |
           gcloud functions deploy onUserSettingsUpdate \
-            --gen2 \
-            --runtime nodejs20 \
-            --region=asia-northeast1 \
-            --source=. \
-            --entry-point=onUserSettingsUpdate \
-            --trigger-location=asia-northeast1
+            --gen2 \                                      # 第2世代関数
+            --runtime=nodejs20 \                          # Node.js 20 環境
+            --region=asia-northeast1 \                    # 東京リージョン
+            --source=functions \                          # 関数ソースの場所
+            --entry-point=onUserSettingsUpdate \          # index.js の exports 名
+            --trigger-event-filters="type=google.cloud.firestore.document.v1.written" \
+            --trigger-event-filters-path-pattern="users/{userId}/noticeSetting"
