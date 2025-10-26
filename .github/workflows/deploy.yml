@@ -29,7 +29,11 @@ jobs:
       - name: Deploy to Cloud Functions
         run: |
           gcloud functions deploy onUserSettingsUpdate \
-            --runtime nodejs18 \
-            --trigger-event providers/cloud.firestore/eventTypes/document.write \
-            --trigger-resource "projects/linebot-799ed/databases/(default)/documents/users/{userId}/setting/time" \
-            --region=asia-northeast1
+            --gen2 \
+            --runtime nodejs20 \
+            --region=asia-northeast1 \
+            --source=. \
+            --entry-point=onUserSettingsUpdate \
+            --trigger-event-filters="type=google.cloud.firestore.document.v1.written" \
+            --trigger-event-filters="database=(default)" \
+            --trigger-event-filters-path-pattern="documents/users/{userId}/setting/time"
