@@ -1,6 +1,6 @@
-const { onDocumentWritten } = require("firebase-functions/v2/firestore");
-const admin = require("firebase-admin");
-const { CloudTasksClient } = require("@google-cloud/tasks");
+import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import * as admin from "firebase-admin";
+import { CloudTasksClient } from "@google-cloud/tasks";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -13,7 +13,7 @@ const SERVICE_ACCOUNT_EMAIL = process.env.SERVICE_ACCOUNT_EMAIL;
 
 const client = new CloudTasksClient();
 
-exports.onUserSettingsUpdate = onDocumentUpdated(
+export const onUserSettingsUpdate = onDocumentUpdated(
   "users/{userId}/noticeSetting",
   async (event) => {
     const userId = event.params.userId;
