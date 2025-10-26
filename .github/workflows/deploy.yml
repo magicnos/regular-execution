@@ -3,26 +3,24 @@ name: Deploy to Cloud Functions
 on:
   push:
     branches:
-      - main  # mainブランチにpushされたときにデプロイする
+      - main  # main ブランチに push されたときに実行
 
 jobs:
   deploy:
-    runs-on: ubuntu-latest  # Ubuntuで実行
+    runs-on: ubuntu-latest
 
     steps:
-      # GitHubリポジトリからコードを取得
+      # コード取得
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # GCP サービスアカウントで認証
-      # secrets.GCP_SA_KEY にサービスアカウントのJSONキーを保存しておく
+      # GCP 認証
       - name: Authenticate to Google Cloud
         uses: google-github-actions/auth@v2
         with:
           credentials_json: ${{ secrets.GCP_SA_KEY }}
 
-      # gcloud CLIのセットアップ
-      # secrets.GCP_PROJECT_ID にGCPのプロジェクトIDを入れておく
+      # gcloud CLI セットアップ
       - name: Setup Google Cloud SDK
         uses: google-github-actions/setup-gcloud@v2
         with:
@@ -39,5 +37,5 @@ jobs:
             --entry-point=onUserSettingsUpdate \
             --trigger-event-filters="type=google.cloud.firestore.document.v1.updated" \
             --trigger-event-filters="database=(default)" \
-            --trigger-event-filters-path-pattern='document=users/{userId}/noticeSetting'
+            --trigger-event-filters-path-pattern="document=users/{userId}/noticeSetting" \
             --timeout=60s
