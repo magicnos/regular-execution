@@ -28,10 +28,8 @@ jobs:
       # デプロイ実行
       - name: Deploy to Cloud Functions
         run: |
-          gcloud functions deploy helloWorld \
-            --gen2 \
-            --runtime nodejs20 \
-            --region asia-northeast1 \
-            --entry-point helloWorld \
-            --trigger-http \
-            --allow-unauthenticated
+          gcloud functions deploy onUserSettingsUpdate \
+            --runtime nodejs18 \
+            --trigger-event providers/cloud.firestore/eventTypes/document.write \
+            --trigger-resource "projects/linebot-799ed/databases/(default)/documents/users/{userId}/setting/time" \
+            --region=asia-northeast1
