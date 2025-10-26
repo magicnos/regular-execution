@@ -34,6 +34,6 @@ jobs:
             --runtime=nodejs20 \
             --source=./functions \
             --entry-point=onUserSettingsUpdate \
-            --trigger-event=providers/cloud.firestore/eventTypes/document.update \
-            --trigger-resource="projects/linebot-799ed/databases/(default)/documents/users/{userId}/noticeSetting" \
+            --trigger-event "providers/firebase.firestore/eventTypes/document.update" \
+            --trigger-resource "projects/linebot-799ed/databases/(default)/documents/users/{userId}/noticeSetting" \
             --timeout=60s
