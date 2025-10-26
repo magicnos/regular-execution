@@ -52,7 +52,7 @@ function getTimezoneOffsetString(timezone, now) {
 }
 
 exports.onUserSettingsUpdate = functions.firestore
-  .document("users/{userId}")
+  .document("users/{userId}/setting/time")
   .onWrite(async (change, context) => {
     const userId = context.params.userId;
     const after = change.after.exists ? change.after.data() : null;
