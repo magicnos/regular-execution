@@ -23,13 +23,14 @@ jobs:
         with:
           project_id: ${{ secrets.GCP_PROJECT_ID }}
 
-      - name: Deploy to Cloud Functions
+      - name: Deploy Cloud Function
         run: |
           gcloud functions deploy onUserSettingsUpdate \
             --runtime=nodejs20 \
             --region=asia-northeast1 \
             --source=./functions \
             --entry-point=onUserSettingsUpdate \
-            --trigger-event providers/cloud.firestore/eventTypes/document.update \
-            --trigger-resource "projects/${{ secrets.GCP_PROJECT_ID }}/databases/(default)/documents/users/{userId}/noticeSetting" \
+            --trigger-event-filters="type=google.cloud.firestore.document.v1.updated" \
+            --trigger-event-filters="database=(default)" \
+            --trigger-event-filters-path-pattern="document=users/{userId}/noticeSetting" \
             --timeout=120s
