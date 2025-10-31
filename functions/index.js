@@ -34,7 +34,7 @@ exports.onUserSettingsUpdate = functions
     const oldTime = before.time;
 
     // 送信日時が変更されていたら、trueになっている
-    if (after.nextNotice == false){
+    if (after.nextNotice === false){
       return;
     }
 
@@ -96,11 +96,10 @@ exports.onUserSettingsUpdate = functions
     // タスク作成
     const [response] = await client.createTask({ parent, task });
 
-    // ここでnextNoticeをfalseに
-    await db.doc(`users/${userId}/noticeSetting`).update({ "nextNotice": false, });
-
-    // 作成したタスク名をFirestoreに保存
-    await db.doc(`users/${userId}/noticeSetting`).update({ "taskName": response.name, });
+    await db.doc(`users/${userId}/noticeSetting`).update({
+      nextNotice: false,
+      taskName: response.name,
+    });
   });
 
 
