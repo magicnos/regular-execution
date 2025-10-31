@@ -97,6 +97,8 @@ exports.onUserSettingsUpdate = functions
     const [response] = await client.createTask({ parent, task });
 
     await db.doc(`users/${userId}/noticeSetting`).update({
+      week: after.week,
+      time: after.time,
       nextNotice: false,
       taskName: response.name,
     });
