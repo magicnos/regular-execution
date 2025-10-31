@@ -96,12 +96,13 @@ exports.onUserSettingsUpdate = functions
     // タスク作成
     const [response] = await client.createTask({ parent, task });
 
+    // Firestore Update
     await db.doc(`users/${userId}/noticeSetting`).update({
-      week: after.week,
-      time: after.time,
-      nextNotice: false,
       taskName: response.name,
+      nextNotice: false,
     });
+
+    console.log(`Task created for ${userId}: ${response.name}`);
   });
 
 
