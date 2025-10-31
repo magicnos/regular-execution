@@ -100,13 +100,13 @@ exports.onUserSettingsUpdate = functions
 
       // Firestore Update
       await db.doc(`users/${userId}/noticeSetting`).update({
-        taskName: response.name,
+        taskName: response.name || "no_response",
         nextNotice: false,
       });
 
       console.log(`Task created for ${userId}: ${response.name}`);
     }catch (e){
-      console.log(e);
+      console.log(e.message);
     }
   });
 
